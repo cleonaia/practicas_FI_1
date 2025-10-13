@@ -196,35 +196,48 @@ while [ "$opt" != "q" ]; do
             fi
             ;;
         lce)
+            #Comprovem si el codi del pais o el codi de l'estat ja estan asignats
             if [ "$codi_pais" = "XX" ] || [ "$codi_estat" = "XX" ]; then
+            # Si no estan asignats, li demanem que ho asigni
                 echo "Primer selecciona un país amb 'sc' i un estat amb 'se'."
             else
-                echo "name wikidataId"
+            # Si ja estan asignats, busquem el país seleccionat (,$codi_pais,) a l'arxiu ($DATASET_FILE), busquem l'estat i ens quedem amb les columnes 2 i 11, ordenem els resultats i creem una taula alineada i li diem que la separació de camps és la ','
+                echo " "
                 grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | sort -u | column -t -s','
             fi
             ;;
-        gwd)
-            if [ "$codi_pais" = "XX" ] || [ "$codi_estat" = "XX" ]; then
-                echo "Primer selecciona un país amb 'sc' i un estat amb 'se'."
+        gwd) #Guardem les dades del país selecionat en un arxiu json
+            #Dividim amb un if i un else, ja que volem comprovar que totes les dades per executar aquest codi ja estiguin assignades
+            if [ "$codi_pais" = "XX" ] || [ "$codi_estat" = "XX" ]; then #Comprovem si el pais i l'estat ja estan asignats mitjançant un "or"
+                echo "Primer selecciona un país amb 'sc' i un estat amb 'se'." #Si no estan seleccionats demanem que es seleccioni el país o l'estat
+            #Si ja han estat assignats li demanem el nom d'una població
             else
                 echo "Introdueix el nom d'una població:"
                 read poblacio
-                if [ -z "$poblacio" ]; then
+                if [ -z "$poblacio" ]; then #Comprovem si la població no existeix o no és correcta avisem
                     echo "No s’ha introduït cap població."
                 else
+                # Si la població introduida és correcta busquem a l'arxiu(DATASET_FILE) el país (codi_pais), un cop trobats el paisos busquem l'estat(codi_estat), tallem i ens quedem les columnes 2 i 11, busquem les línies en les que la primera columna continguin la població ignorant majuscules i minúscules, ordenem els resultst i eliminem els duplicats i el resultat es queda en la variable "wdid"
                     wdid=$(grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | grep -i "^$poblacio," | cut -d',' -f2 | sort -u)
                     if [ -z "$wdid" ]; then
+                    #Comprovem si la variable està buida, si ho està, fem el mateix procediment però aquest cop en comptes de buscar-ho a la primera columna ($poblacio,), la busquem a la segona columna (,$poblacio$)
                         wdid=$(grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | grep -i ",$poblacio$" | cut -d',' -f2 | sort -u)
                     fi
                     if [ -z "$wdid" ]; then
+                    #Comprovem si la variable està buida, si ho està, fem el mateix procediment però aquest cop en comptes de buscar-ho a la segona columna (,$poblacio$), busquem si el nom de la població acaba en una coma i està seguida del nom de la població (,\"$poblacio\"$)
                         wdid=$(grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | grep -i ",\"$poblacio\"$" | cut -d',' -f2 | sort -u)
                     fi
                     if [ -z "$wdid" ]; then
+                    #Si tot i això no troba la població li diem que no l'hem trobat
                         echo "No s'ha trobat la població o no té wikidataId."
                     else
+                    #Si trobem la població la guardem en una url amb el WikiDatald del país
+                        #Creem una url amb el WikiDatald del país
                         url="https://www.wikidata.org/wiki/Special:EntityData/${wdid}.json"
+                        #Creem un arxiu amb el nom del WikiDatald del país
                         arxiu="${wdid}.json"
                         echo "Descarregant dades de WikiData..."
+                        # Utilitzem curl per descarregar (-s) l'arxiu JSON desde la URL creada i guradem els resultats a l'arxiu
                         curl -s "$url" -o "$arxiu"
                         echo "Dades guardades a $arxiu"
                     fi
@@ -233,11 +246,9 @@ while [ "$opt" != "q" ]; do
             ;;
         est)
             echo "Calculant estadístiques..."
+####Comprovem les diferents condicions, si la latitud és major de 0 incrementem nord, si és més petita incrementem sud, si la longitud és més gran de 0 incrementem est, si no incrementem oest
             awk -F',' 'NR>1{lat=$9+0;lon=$10+0;wdid=$11;if(lat>0)nord++;if(lat<0)sud++;if(lon>0)est++;if(lon<0)oest++;if(lat==0&&lon==0)no_ubic++;if(wdid==""||wdid=="NULL")no_wdid++}END{printf "Nord %d Sud %d Est %d Oest %d No ubic %d No WDId %d\n",nord,sud,est,oest,no_ubic,no_wdid}' "$DATASET_FILE"
             ;;
         *)
             echo "Opció no vàlida. Torna-ho a intentar."
             ;;
-    esac
-    echo ""
-done
