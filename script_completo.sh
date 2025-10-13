@@ -32,10 +32,7 @@ while [ "$opt" != "q" ]; do
             ;;
         lp)
             echo "country_code country_name"
-            cut -d',' -f7,8 "$DATASET_FILE" | tail -n +2 | sort -u | while IFS=, read code name; do
-                name_clean=$(echo "$name" | sed 's/^"//;s/"$//')
-                printf "%s %s\n" "$code" "$name_clean"
-            done | column -t
+            cut -d',' -f7,8 "$DATASET_FILE" | tail -n +2 | sort -u | column -t -s','
             ;;
         sc)
             echo "Introdueix el nom o codi del país:"
@@ -67,10 +64,7 @@ while [ "$opt" != "q" ]; do
             else
                 echo "Estats del país amb codi $codi_pais:"
                 echo "state_code state_name"
-                grep ",$codi_pais," "$DATASET_FILE" | cut -d',' -f4,5 | sort -u | while IFS=, read code name; do
-                    name_clean=$(echo "$name" | sed 's/^"//;s/"$//')
-                    printf "%s %s\n" "$code" "$name_clean"
-                done | column -t
+                grep ",$codi_pais," "$DATASET_FILE" | cut -d',' -f4,5 | sort -u | column -t -s','
             fi
             ;;
         se)
@@ -133,15 +127,13 @@ while [ "$opt" != "q" ]; do
                 if [ -z "$poblacio" ]; then
                     echo "No s’ha introduït cap població."
                 else
-                    poblacio_norm=$(echo "$poblacio" | tr '[:upper:]' '[:lower:]' | sed 'y/áéíóúüñ/aeiouun/')
-                    wdid=""
-                    grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | while IFS=, read name id; do
-                        name_clean=$(echo "$name" | sed 's/^"//;s/"$//' | tr '[:upper:]' '[:lower:]' | sed 'y/áéíóúüñ/aeiouun/')
-                        if [ "$poblacio_norm" = "$name_clean" ]; then
-                            wdid="$id"
-                            break
-                        fi
-                    done
+                    wdid=$(grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | grep -i "^$poblacio," | cut -d',' -f2 | sort -u)
+                    if [ -z "$wdid" ]; then
+                        wdid=$(grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | grep -i ",$poblacio$" | cut -d',' -f2 | sort -u)
+                    fi
+                    if [ -z "$wdid" ]; then
+                        wdid=$(grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | grep -i ",\"$poblacio\"$" | cut -d',' -f2 | sort -u)
+                    fi
                     if [ -z "$wdid" ]; then
                         echo "No s'ha trobat la població o no té wikidataId."
                     else
@@ -164,3 +156,4 @@ while [ "$opt" != "q" ]; do
     esac
     echo ""
 done
+
