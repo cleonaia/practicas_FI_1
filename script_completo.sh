@@ -188,15 +188,17 @@ while [ "$opt" != "q" ]; do
             ;;
         ecp)
             if [ "$codi_pais" = "XX" ]; then
+            # Comprovem si s'ha seleccionat el país, si no li demanem que ho seleccioni.
                 echo "Primer selecciona un país amb 'sc'."
             else
+            # Si ja l'ha seleccionat li demanem que crei un arxiu amb el codi del país
                 arxiu="${codi_pais}.csv"
                 grep ",$codi_pais," "$DATASET_FILE" | cut -d',' -f2,11 | sort -u > "$arxiu"
                 echo "Poblacions extretes a l'arxiu: $arxiu"
             fi
             ;;
         lce)
-            #Comprovem si el codi del pais o el codi de l'estat ja estan asignats
+            #Comprovem si el codi del pais o el codi de l'estat ja estan asignats amb una condició "or"
             if [ "$codi_pais" = "XX" ] || [ "$codi_estat" = "XX" ]; then
             # Si no estan asignats, li demanem que ho asigni
                 echo "Primer selecciona un país amb 'sc' i un estat amb 'se'."
@@ -252,6 +254,3 @@ while [ "$opt" != "q" ]; do
         *)
             echo "Opció no vàlida. Torna-ho a intentar."
             ;;
-    esac
-    echo ""
-done
