@@ -252,3 +252,6 @@ while [ "$opt" != "q" ]; do
         *)
             echo "Opció no vàlida. Torna-ho a intentar."
             ;;
+    esac
+    echo ""
+done
