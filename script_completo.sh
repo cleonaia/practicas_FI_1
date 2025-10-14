@@ -197,6 +197,7 @@ while [ "$opt" != "q" ]; do
             else
             # Si ja l'ha seleccionat li demanem que crei un arxiu amb el codi del país
                 arxiu="${codi_pais}.csv"
+                #Busca ls linees que contenen el país a l'arxiu DATASET_FILE, i talle les linees 2 i 11 separades per comes, les ordena i elimina duplicats, gurada el resultat en $arxiu.
                 grep ",$codi_pais," "$DATASET_FILE" | cut -d',' -f2,11 | sort -u > "$arxiu"
                 echo "Poblacions extretes a l'arxiu: $arxiu"
             fi
@@ -207,7 +208,7 @@ while [ "$opt" != "q" ]; do
             # Si no estan asignats, li demanem que ho asigni
                 echo "Primer selecciona un país amb 'sc' i un estat amb 'se'."
             else
-            # Si ja estan asignats, busquem el país seleccionat (,$codi_pais,) a l'arxiu ($DATASET_FILE), busquem l'estat i ens quedem amb les columnes 2 i 11, ordenem els resultats i creem una taula alineada i li diem que la separació de camps és la ','
+            # Si ja estan asignats, busquem el país seleccionat (,$codi_pais,) a l'arxiu ($DATASET_FILE), busquem l'estat i ens quedem amb les columnes 2 i 11, ordenem els resultats i creem una taula on li diem que la separació de camps és la ','
                 echo " "
                 grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | sort -u | column -t -s','
             fi
