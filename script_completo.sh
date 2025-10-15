@@ -186,7 +186,7 @@ while [ "$opt" != "q" ]; do
             else
             # Si ja ha seleccionat un país| grep: busquem el país al l'arxiu (DATASET_FILE) |cut -d','-f2,11: tallem les columnes 2 i 11 | sort -u: ordenem els resultats i elimina els duplicats| column -t -s',': guarda els resultats en format taula i utilitza ',' com a separador
                 echo "name wikidataId"
-                #Ens asegurem que busquem un camp complert.
+                #Ens asegurem que busquem un camp complert amb grep ",$codi_pais,".
                 grep ",$codi_pais," "$DATASET_FILE" | cut -d',' -f2,11 | sort -u | column -t -s','
             fi
             ;;
@@ -195,9 +195,9 @@ while [ "$opt" != "q" ]; do
             # Comprovem si s'ha seleccionat el país, si no li demanem que ho seleccioni.
                 echo "Primer selecciona un país amb 'sc'."
             else
-            # Si ja l'ha seleccionat li demanem que crei un arxiu amb el codi del país
+            # Si ja l'ha seleccionat li demanem que crei un arxiu amb el codi del país amb la varaible arxiu
                 arxiu="${codi_pais}.csv"
-                #Busca ls linees que contenen el país a l'arxiu DATASET_FILE, i talle les linees 2 i 11 separades per comes, les ordena i elimina duplicats, gurada el resultat en $arxiu.
+                #grep: Busca ls linees que contenen el país a l'arxiu DATASET_FILE | cut-d: talla les linies 2 i 11 separades per comes | sort -u: les ordena i elimina duplicats | >"$arxiu": gurada el resultat en $arxiu.
                 grep ",$codi_pais," "$DATASET_FILE" | cut -d',' -f2,11 | sort -u > "$arxiu"
                 echo "Poblacions extretes a l'arxiu: $arxiu"
             fi
@@ -208,23 +208,24 @@ while [ "$opt" != "q" ]; do
             # Si no estan asignats, li demanem que ho asigni
                 echo "Primer selecciona un país amb 'sc' i un estat amb 'se'."
             else
-            # Si ja estan asignats, busquem el país seleccionat (,$codi_pais,) a l'arxiu ($DATASET_FILE), busquem l'estat i ens quedem amb les columnes 2 i 11, ordenem els resultats i creem una taula on li diem que la separació de camps és la ','
+            # Si ja estan asignats | grep ",$codi_pais," "$DATASET_FILE": busquem el país seleccionat (,$codi_pais,) a l'arxiu ($DATASET_FILE)| grep ",$codi_estat,": busquem l'estat i ens quedem amb les columnes 2 i 11 | sort -u: ordenem els resultats | column -t -s',': creem una taula on li diem que la separació de camps és la ','
                 echo " "
                 grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | sort -u | column -t -s','
             fi
             ;;
         gwd) #Guardem les dades del país selecionat en un arxiu json
-            #Dividim amb un if i un else, ja que volem comprovar que totes les dades per executar aquest codi ja estiguin assignades
-            if [ "$codi_pais" = "XX" ] || [ "$codi_estat" = "XX" ]; then #Comprovem si el pais i l'estat ja estan asignats mitjançant un "or"
-                echo "Primer selecciona un país amb 'sc' i un estat amb 'se'." #Si no estan seleccionats demanem que es seleccioni el país o l'estat
+            #Comprovem que totes les dades per executar aquest codi ja estan assignades
+            if [ "$codi_pais" = "XX" ] || [ "$codi_estat" = "XX" ]; then
+                echo "Primer selecciona un país amb 'sc' i un estat amb 'se'." #Si un dels dos no està seleccionat demanem que es seleccioni el país o l'estat
             #Si ja han estat assignats li demanem el nom d'una població
             else
                 echo "Introdueix el nom d'una població:"
                 read poblacio
-                if [ -z "$poblacio" ]; then #Comprovem si la població no existeix o no és correcta avisem
+                if [ -z "$poblacio" ]; then #Comprovem si la població no existeix o no és correcta
                     echo "No s’ha introduït cap població."
                 else
-                # Si la població introduida és correcta busquem a l'arxiu(DATASET_FILE) el país (codi_pais), un cop trobats el paisos busquem l'estat(codi_estat), tallem i ens quedem les columnes 2 i 11, busquem les línies en les que la primera columna continguin la població ignorant majuscules i minúscules, ordenem els resultst i eliminem els duplicats i el resultat es queda en la variable "wdid"
+                # Si la població introduida és correcta busquem a l'arxiu(DATASET_FILE) | grep ",$codi_estat,": Busquem l'estat(codi_estat)|cut -d',' -f2,11: tallem i ens quedem les columnes 2 i 11 | grep -i "^$poblacio,": busquem les línies en les que la primera columna continguin la població ignorant majuscules i minúscules | sort -u: Ordenem els resultst i eliminem els duplicats
+                # El resultat es queda en la variable "wdid"
                     wdid=$(grep ",$codi_pais," "$DATASET_FILE" | grep ",$codi_estat," | cut -d',' -f2,11 | grep -i "^$poblacio," | cut -d',' -f2 | sort -u)
                     if [ -z "$wdid" ]; then
                     #Comprovem si la variable està buida, si ho està, fem el mateix procediment però aquest cop en comptes de buscar-ho a la primera columna ($poblacio,), la busquem a la segona columna (,$poblacio$)
@@ -244,7 +245,7 @@ while [ "$opt" != "q" ]; do
                         #Creem un arxiu amb el nom del WikiDatald del país
                         arxiu="${wdid}.json"
                         echo "Descarregant dades de WikiData..."
-                        # Utilitzem curl per descarregar (-s) l'arxiu JSON desde la URL creada i guradem els resultats a l'arxiu
+                        # Utilitzem | curl -s "$url" -o "$arxiu": per descarregar l'arxiu JSON desde la URL creada i guradem els resultats a l'arxiu
                         curl -s "$url" -o "$arxiu"
                         echo "Dades guardades a $arxiu"
                     fi
