@@ -1,3 +1,5 @@
+#!/bin/bash
+
 ##################################################################
 # Script creat per Zhengli Sun & Leo Aguayo                      #
 #                                                                #
@@ -61,9 +63,6 @@
 # L'objectiu és poder oferir una eina robusta, clara i fàcil     #
 # d'usar, seguint els requisits de la pràctica.                  #
 ##################################################################
-
-#!/bin/bash  
-
 DATASET_FILE="cities.csv"
 
 opt="x" 
