@@ -253,17 +253,37 @@ while [ "$opt" != "q" ]; do
             fi
             ;;
         est)
+            # Aquesta opció calcula diverses estadístiques sobre el dataset:
+            #  - Nord: poblacions amb latitud > 0
+            #  - Sud: poblacions amb latitud < 0
+            #  - Est: poblacions amb longitud > 0
+            #  - Oest: poblacions amb longitud < 0
+            #  - No ubic: latitud == 0 i longitud == 0 (sense ubicació)
+            #  - No WDId: camp wikidataId buit o igual a "NULL"
+            #
+            # Explicació de l'ús d'awk:
+            #  - -F','        : delimita camps amb la coma (CSV).
+            #  - NR           : número de registre (línea) actual; NR>1 evita la capçalera.
+            #  - $9, $10, $11 : accés als camps 9 (lat), 10 (lon) i 11 (wikidataId).
+            #  - +0           : forcem la conversió a nombre (si el camp està buit passa a 0).
+            #  - Variables     : nord, sud, est, oest, no_ubic, no_wdid acumulen els comptadors.
+            #  - END{...}     : s'executa al final per imprimir el resum formatat.
+            #
+            # Per què NR>1? La primera línia del CSV normalment és la capçalera; NR>1 fa que
+            # només processem les dades reals.
+            #
+            # Exemple de lògica per línia:
+            #  - si lat>0 incrementa nord
+            #  - si lon<0 incrementa oest
+            #  - si lat==0 i lon==0 incrementa no_ubic
+            #  - si wdid està buit o és "NULL" incrementa no_wdid
+            #
             echo "Calculant estadístiques..."
-#Primer li diem a awk que el separador de camps és una coma
-#NR significa número de registre, i NR>1 salta a la primera línea
-#Comprovem les diferents condicions, si la latitud és major de 0 incrementem nord, si és més petita incrementem sud, si la longitud és més gran de 0 incrementem est, si és més petita incrementem oest
-#(if(lat==0&&lon==0) no_ubic++) Suma les coordenades, si són (0,0) indica que no estan ubicades
-#(if(wdid==""||wdid=="NULL")no_wdid++) Si el camp wdid esta buit o té NULL indica que no té indentificador
-#Acaba amb el END, imprimint els resultats dels comptadors
-#(DATASET_FILE) ens indica d'on llegeix l'awk
             awk -F',' 'NR>1{lat=$9+0;lon=$10+0;wdid=$11;if(lat>0)nord++;if(lat<0)sud++;if(lon>0)est++;if(lon<0)oest++;if(lat==0&&lon==0)no_ubic++;if(wdid==""||wdid=="NULL")no_wdid++}END{printf "Nord %d Sud %d Est %d Oest %d No ubic %d No WDId %d\n",nord,sud,est,oest,no_ubic,no_wdid}' "$DATASET_FILE"
             ;;
         *)
-            #Si l'opció no és vàlida, avisem a l'usuari
             echo "Opció no vàlida. Torna-ho a intentar."
             ;;
+    esac
+    echo ""
+done
