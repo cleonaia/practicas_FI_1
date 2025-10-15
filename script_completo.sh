@@ -181,12 +181,12 @@ while [ "$opt" != "q" ]; do
         lcp)
         # Comprovem si el codi del país ha estat selecionat
             if [ "$codi_pais" = "XX" ]; then
-            # Si no li demanem que ho seleccioni
+                # Si no hi ha país seleccionat, es mostra un avís
                 echo "Primer selecciona un país amb 'sc'."
             else
-            # Si ja ha seleccionat un país, busquem el país al l'arxiu (DATASET_FILE), tallem les columnes 2 i 11, ordenem els resultats i elimina els duplicats, guarda els resultats en format taula i utilitza ',' com a separador
+            # Si ja ha seleccionat un país| grep: busquem el país al l'arxiu (DATASET_FILE) |cut -d','-f2,11: tallem les columnes 2 i 11 | sort -u: ordenem els resultats i elimina els duplicats| column -t -s',': guarda els resultats en format taula i utilitza ',' com a separador
                 echo "name wikidataId"
-                #Fiquem les dos comes al codi_pais ja que així ens asegurem que busquem exactamen un camp complert.
+                #Ens asegurem que busquem un camp complert.
                 grep ",$codi_pais," "$DATASET_FILE" | cut -d',' -f2,11 | sort -u | column -t -s','
             fi
             ;;
